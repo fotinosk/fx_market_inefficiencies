@@ -1,0 +1,1 @@
+## This is a small project to find inefficiencies in forex and provide advice on taking advantage of them. Ie it tests the exchange rates of multiple currencies and if there is a more efficient way, ie one that makes you money, suggests that
