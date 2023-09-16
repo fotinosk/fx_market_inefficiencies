@@ -1,4 +1,4 @@
-package APIinterface
+package utils 
 
 import (
 	"encoding/json"
@@ -102,7 +102,7 @@ func get_currency_rates(currency_key string, base_url string) map[string]float32
 }
 
 
-func generate_nodes() map[string]float32 {
+func Generate_nodes() map[string]map[string]float32 {
 
 	exchanges := make(map[string]map[string]float32)
 	for _, currency := range considered_currencies {
@@ -113,8 +113,8 @@ func generate_nodes() map[string]float32 {
 }
 
 
-func main() {
-	// currencies := get_all_currency_values(base_url)
-	exchanges := generate_nodes()
-	fmt.Println(exchanges)
-}
+// func main() {
+// 	// currencies := get_all_currency_values(base_url)
+// 	exchanges := generate_nodes()
+// 	fmt.Println(exchanges)
+// }

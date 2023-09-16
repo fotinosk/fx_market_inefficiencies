@@ -1,3 +1,3 @@
-module github.com/fotinosk/fx_market_inefficiencies
+module fxIneff
 
 go 1.18
