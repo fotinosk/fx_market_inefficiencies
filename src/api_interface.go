@@ -1,4 +1,4 @@
-package main
+package APIinterface
 
 import (
 	"encoding/json"
@@ -87,16 +87,34 @@ func get_currency_rates(currency_key string, base_url string) map[string]float32
 	b, _ := json.Marshal(curr_json[currency_key])
 	json.Unmarshal(b, &response_json)
 
-	return response_json
+	// need to remove all currencies that are not in the currencies
+	// of interest list
+	filtered_json := make(map[string]float32)
+
+	for _, key := range considered_currencies {
+		val, ok := response_json[key]
+		if ok {
+			filtered_json[key] = val
+		}
+	}
+
+	return filtered_json
 }
 
-func main() {
-	// currencies := get_all_currency_values(base_url)
+
+func generate_nodes() map[string]float32 {
 
 	exchanges := make(map[string]map[string]float32)
 	for _, currency := range considered_currencies {
 		currency_exchange := get_currency_rates(currency, base_url)
 		exchanges[currency] = currency_exchange
 	}
+	return exchanges
+}
+
+
+func main() {
+	// currencies := get_all_currency_values(base_url)
+	exchanges := generate_nodes()
 	fmt.Println(exchanges)
 }
