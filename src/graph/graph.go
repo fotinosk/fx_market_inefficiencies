@@ -3,50 +3,34 @@ package graph
 import (
 	"fmt"
 	utils "fxIneff/src/api"
+
+	"golang.org/x/exp/slices"
 )
 
-type Node struct {
-	name        string
-	conversions map[string]float32
-}
-
-func (n Node) print() {
-	keys := make([]string, len(n.conversions)) // slight performance improvement since we know slice size
-	i := 0
-	for k := range n.conversions {
-		keys[i] = k
-		i++
+func has_duplicates(path []string) bool {
+	sub_array := path[1:]
+	for ind, val := range sub_array {
+		sub_sub_array := sub_array[ind+1:]
+		if slices.Contains(sub_sub_array, val) {
+			return true
+		}
 	}
-	fmt.Printf("Node for %s, with conversions to: %s\n\n", n.name, keys)
+	return false
 }
 
-type Graph struct {
-	vertices map[string]map[string]float32
-}
-
-func (graph Graph) initialize() []Node {
-	// initialize the graph, ie convert the map of conversions to a list of Nodes
-	edges := make([]Node, len(graph.vertices))
-	ind := 0
-
-	for key, value := range graph.vertices {
-		node := Node{name: key, conversions: value}
-		edges[ind] = node
-		ind++
-	}
-	return edges
-}
-
-func TraverseGraph(path []string) (float32, error) {
+func TraverseGraph(path []string) (float64, error) {
 	if path[0] != path[len(path)-1] {
 		return 0.0, fmt.Errorf("path given is not a cycle - the path must start and end at the same currency")
 	}
 
-	// implement a check for duplicates - if it has duplicates then it has subcycles so raise error
+	has_dupl := has_duplicates(path)
+	if has_dupl {
+		return 0.0, fmt.Errorf("node visited mutliple times, this is forbiden")
+	}
 
 	vertices := utils.Generate_nodes()
 	start_point := path[0]
-	returns := float32(1.0)
+	returns := 10000.0
 	current_node := start_point
 
 	for _, next_node := range path[1:] {
@@ -60,15 +44,11 @@ func TraverseGraph(path []string) (float32, error) {
 	return returns, nil
 }
 
-func Test_imports() {
-	nodes := utils.Generate_nodes()
-	fmt.Println("interal import working as expected")
+func TraversalAlgorithm(vertices map[string]map[string]float64) []string {
+	// implement here the traversal algorithm
 
-	for name, conv := range nodes {
-		n := Node{
-			name:        name,
-			conversions: conv,
-		}
-		n.print()
-	}
+	// step 1: find the biggest discrepancies this is O(n^2)
+
+	var result []string
+	return result
 }
