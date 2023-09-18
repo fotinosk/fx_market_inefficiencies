@@ -1,4 +1,4 @@
-package utils 
+package utils
 
 import (
 	"encoding/json"
@@ -78,8 +78,8 @@ func get_all_currency_values(base_url string) []string {
 	return currency_keys
 }
 
-func get_currency_rates(currency_key string, base_url string) map[string]float32 {
-	var response_json map[string]float32
+func get_currency_rates(currency_key string, base_url string) map[string]float64 {
+	var response_json map[string]float64
 
 	curr_url := fmt.Sprintf("%scurrencies/%s.json", base_url, currency_key)
 	curr_json := make_get_request(curr_url)
@@ -89,7 +89,7 @@ func get_currency_rates(currency_key string, base_url string) map[string]float32
 
 	// need to remove all currencies that are not in the currencies
 	// of interest list
-	filtered_json := make(map[string]float32)
+	filtered_json := make(map[string]float64)
 
 	for _, key := range considered_currencies {
 		val, ok := response_json[key]
@@ -101,20 +101,12 @@ func get_currency_rates(currency_key string, base_url string) map[string]float32
 	return filtered_json
 }
 
+func Generate_nodes() map[string]map[string]float64 {
 
-func Generate_nodes() map[string]map[string]float32 {
-
-	exchanges := make(map[string]map[string]float32)
+	exchanges := make(map[string]map[string]float64)
 	for _, currency := range considered_currencies {
 		currency_exchange := get_currency_rates(currency, base_url)
 		exchanges[currency] = currency_exchange
 	}
 	return exchanges
 }
-
-
-// func main() {
-// 	// currencies := get_all_currency_values(base_url)
-// 	exchanges := generate_nodes()
-// 	fmt.Println(exchanges)
-// }
