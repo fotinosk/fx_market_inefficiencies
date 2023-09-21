@@ -36,14 +36,15 @@ func (mat *ConversionMatrix) PopulateConversionMatrix(vertices map[string]map[st
 	}
 }
 
-func (mat *ConversionMatrix) GetExchangeRate(from string, to string) (float64, error) {
+func (mat ConversionMatrix) GetExchangeRate(from string, to string) (float64, error) {
 	ind_from := -1
 	ind_to := -1
 
 	for ind, val := range mat.currency_names {
 		if val == from {
 			ind_from = ind
-		} else if val == to {
+		}
+		if val == to {
 			ind_to = ind
 		}
 	}
@@ -52,4 +53,16 @@ func (mat *ConversionMatrix) GetExchangeRate(from string, to string) (float64, e
 		return 0.0, fmt.Errorf("provided currency is not in exchange list")
 	}
 	return mat.conversions[ind_from][ind_to], nil
+}
+
+func (mat ConversionMatrix) GetAlpha(base_currency string, currennt_currency string, next_currency string) float64 {
+	// returns current -> next -> base
+	current_to_next, _ := mat.GetExchangeRate(currennt_currency, next_currency)
+	next_to_base, _ := mat.GetExchangeRate(next_currency, base_currency)
+
+	return current_to_next * next_to_base
+}
+
+func (mat ConversionMatrix) GetCurrencies() []string {
+	return mat.currency_names
 }
