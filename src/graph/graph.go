@@ -31,7 +31,7 @@ func TraverseGraph(path []string) (float64, error) {
 
 	vertices := utils.Generate_nodes()
 	start_point := path[0]
-	returns := 10000.0
+	returns := 1.0
 	current_node := start_point
 
 	for _, next_node := range path[1:] {
