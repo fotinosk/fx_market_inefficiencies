@@ -78,9 +78,6 @@ func TraversalAlgorithm(vertices map[string]map[string]float64, start_node strin
 		If it ever goes negative or down then stop
 
 		This means that the max length can be the number of currencies you have
-
-		Note: later on, add condition to backtrack and explore other paths
-
 	*/
 
 	visited_nodes := make([]string, 0, len(vertices))
