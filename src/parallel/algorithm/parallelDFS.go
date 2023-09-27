@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"fxIneff/src/parallel/matrix"
 	"fxIneff/src/parallel/utils"
+	"sync"
 	"time"
 
 	"golang.org/x/exp/slices"
@@ -13,6 +14,28 @@ import (
 type AlphaDict struct {
 	name  string
 	alpha float64
+}
+
+// SafeCounter is safe to use concurrently.
+type SafeCounter struct {
+	mu sync.Mutex
+	v  int
+}
+
+// Inc increments the counter for the given key.
+func (c *SafeCounter) Inc() {
+	c.mu.Lock()
+	// Lock so only one goroutine at a time can access the map c.v.
+	c.v++
+	c.mu.Unlock()
+}
+
+// Value returns the current value of the counter for the given key.
+func (c SafeCounter) Value() int {
+	// c.mu.Lock()
+	// // Lock so only one goroutine at a time can access the map c.v.
+	// defer c.mu.Unlock()
+	return c.v
 }
 
 func initialize_path(start_node string, node string, matrix matrix.Matrix, channel chan AlphaDict) {
@@ -46,7 +69,7 @@ func getGreedyNext(
 	return best_next
 }
 
-func explore_path(current_path []string, matrix matrix.Matrix, channel chan []string) {
+func explore_path(current_path []string, matrix matrix.Matrix, channel chan []string, num_channels SafeCounter) {
 	current_node := current_path[len(current_path)-1]
 	base_currency := current_path[0]
 
@@ -56,11 +79,12 @@ func explore_path(current_path []string, matrix matrix.Matrix, channel chan []st
 	if next == base_currency {
 		channel <- current_path
 	} else {
-		go explore_path(current_path, matrix, channel)
+		num_channels.Inc()
+		go explore_path(current_path, matrix, channel, num_channels)
 	}
 }
 
-func traverseGraph(path []string, matrix matrix.Matrix) (float64) {
+func traverseGraph(path []string, matrix matrix.Matrix) float64 {
 	start_point := path[0]
 	returns := 1.0
 	current_node := start_point
@@ -78,8 +102,8 @@ func ParallelDFS(start_node string) ([]string, float64) {
 	var ConvMatrix matrix.Matrix
 	ConvMatrix.PopulateMatrix()
 	currencies := ConvMatrix.GetCurrencies()
+	currencies = utils.RemoveSliceElements(currencies, []string{start_node})
 
-	// start by ordering the next steps according to alpha
 	alpha_map := make(map[string]float64, len(currencies))
 	channel := make(chan (AlphaDict))
 
@@ -94,32 +118,33 @@ func ParallelDFS(start_node string) ([]string, float64) {
 		counter++
 	}
 
-	alpha_map = utils.SortMapByValue(alpha_map)
-
-	path_channel := make(chan([]string))
+	path_channel := make(chan ([]string))
+	num_channels := SafeCounter{v: 0}
 
 	for key := range alpha_map {
 		path := []string{start_node, key}
-		go explore_path(path, ConvMatrix, path_channel)
+		num_channels.Inc()
+		go explore_path(path, ConvMatrix, path_channel, num_channels)
 	}
 
-	// how to know when the channel is empty
-	// for res := range path_channel {
-	// 	ret := traverseGraph(res, ConvMatrix)
-	// 	fmt.Println(res, ret)
-	// }
-	for {
-		select {
-			case res := <- path_channel:
-				ret := traverseGraph(res, ConvMatrix)
-				fmt.Println(res, ret)
-			case <- time.After(10 * time.Millisecond):
-				fmt.Println("0.01sec passed")
-				return []string{"abc"}, 0.1
+	best_path := make([]string, len(currencies)+2)
+	best_ret := 0.0
+
+	for i := 0; i < num_channels.Value(); i++ {
+		res := <-path_channel
+		ret := traverseGraph(res, ConvMatrix)
+		if ret > best_ret {
+			best_path = res
+			best_ret = ret
 		}
-	}
 
-	// return []string{"abc"}, 0.1
+	}
+	return best_path, best_ret
 }
 
-func main() { ParallelDFS("eur") }
+func main() {
+	start := time.Now()
+	p, r := ParallelDFS("eur")
+	elapsed := time.Since(start)
+	fmt.Println(p, r, elapsed)
+}
