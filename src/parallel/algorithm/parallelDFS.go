@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"fxIneff/src/parallel/matrix"
 	"fxIneff/src/parallel/utils"
+	"time"
+
 	"golang.org/x/exp/slices"
 )
 
@@ -47,7 +49,6 @@ func getGreedyNext(
 func explore_path(current_path []string, matrix matrix.Matrix, channel chan []string) {
 	current_node := current_path[len(current_path)-1]
 	base_currency := current_path[0]
-	// possible_next := utils.RemoveSliceElements(currencies, current_path[1:])  // keep the start node in the list of possibilities
 
 	next := getGreedyNext(base_currency, current_node, current_path[1:], matrix)
 	current_path = append(current_path, next)
@@ -57,6 +58,20 @@ func explore_path(current_path []string, matrix matrix.Matrix, channel chan []st
 	} else {
 		go explore_path(current_path, matrix, channel)
 	}
+}
+
+func traverseGraph(path []string, matrix matrix.Matrix) (float64) {
+	start_point := path[0]
+	returns := 1.0
+	current_node := start_point
+
+	for _, next_node := range path[1:] {
+		rate, _ := matrix.GetExchangeRate(current_node, next_node)
+		returns = returns * rate
+		current_node = next_node
+	}
+
+	return returns
 }
 
 func ParallelDFS(start_node string) ([]string, float64) {
@@ -83,14 +98,28 @@ func ParallelDFS(start_node string) ([]string, float64) {
 
 	path_channel := make(chan([]string))
 
-	for key, _ := range alpha_map {
+	for key := range alpha_map {
 		path := []string{start_node, key}
 		go explore_path(path, ConvMatrix, path_channel)
 	}
 
 	// how to know when the channel is empty
+	// for res := range path_channel {
+	// 	ret := traverseGraph(res, ConvMatrix)
+	// 	fmt.Println(res, ret)
+	// }
+	for {
+		select {
+			case res := <- path_channel:
+				ret := traverseGraph(res, ConvMatrix)
+				fmt.Println(res, ret)
+			case <- time.After(10 * time.Millisecond):
+				fmt.Println("0.01sec passed")
+				return []string{"abc"}, 0.1
+		}
+	}
 
-	return []string{"abc"}, 0.1
+	// return []string{"abc"}, 0.1
 }
 
-func main() {ParallelDFS("eur")}
+func main() { ParallelDFS("eur") }
