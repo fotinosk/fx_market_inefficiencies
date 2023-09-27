@@ -1,6 +1,10 @@
 package utils
 
-import "sort"
+import (
+	"sort"
+	"golang.org/x/exp/slices"
+
+)
 
 func SortMapByValue(inp map[string]float64) map[string]float64 {
     var entries []struct {
@@ -30,33 +34,16 @@ func SortMapByValue(inp map[string]float64) map[string]float64 {
     return sortedMap
 }
 
-func SortMapByValues(inputMap *map[string]float64) {
-	// Create a slice to store the map entries
-	var entries []struct {
-		Key   string
-		Value float64
-	}
 
-	// Populate the slice with map entries
-	for key, value := range *inputMap {
-		entries = append(entries, struct {
-			Key   string
-			Value float64
-		}{key, value})
-	}
+func RemoveSliceElements(list1 []string, list2 []string) []string {
+	// remove the elements of list2 from list1
+	var rslice = make([]string, len(list1))
 
-	// Sort the slice by values
-	sort.Slice(entries, func(i, j int) bool {
-		return entries[i].Value < entries[j].Value
-	})
 
-	// Clear the original map
-	for key := range *inputMap {
-		delete(*inputMap, key)
+	for _, element := range(list1) {
+		if !slices.Contains(list2, element) {
+			rslice = append(rslice, element)
+		}
 	}
-
-	// Populate the original map with sorted entries
-	for _, entry := range entries {
-		(*inputMap)[entry.Key] = entry.Value
-	}
+	return rslice
 }
