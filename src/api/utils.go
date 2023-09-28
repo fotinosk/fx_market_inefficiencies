@@ -4,8 +4,8 @@ import (
 	"golang.org/x/exp/slices"
 )
 
+// Remove the elements of list2 from list1
 func RemoveSliceElements(list1 []string, list2 []string) []string {
-	// remove the elements of list2 from list1
 	var rslice = make([]string, len(list1))
 
 
