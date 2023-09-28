@@ -1,12 +1,11 @@
-// package algorithm
-package main
+package algorithm
+
+// package main
 
 import (
-	"fmt"
 	"fxIneff/src/parallel/matrix"
 	"fxIneff/src/parallel/utils"
 	"sync"
-	"time"
 
 	"golang.org/x/exp/slices"
 )
@@ -38,19 +37,20 @@ func (c SafeCounter) Value() int {
 	return c.v
 }
 
+// generate the advantage for a node
 func initialize_path(start_node string, node string, matrix matrix.Matrix, channel chan AlphaDict) {
 	alpha := matrix.GetAlpha(start_node, start_node, node)
 	dict := AlphaDict{node, alpha}
 	channel <- dict
 }
 
+// select the node with the best returns in a time horizon of 1
 func getGreedyNext(
 	start_node string,
 	current_node string,
 	already_visited []string,
 	currency_matrix matrix.Matrix,
 ) string {
-	// find X to maximize current node -> X -> start node
 
 	best_next := start_node
 	best_val := 1.0
@@ -69,6 +69,7 @@ func getGreedyNext(
 	return best_next
 }
 
+// recursively esplore the path, creating new goroutins as you go until reaching the start node again
 func explore_path(current_path []string, matrix matrix.Matrix, channel chan []string, num_channels SafeCounter) {
 	current_node := current_path[len(current_path)-1]
 	base_currency := current_path[0]
@@ -84,6 +85,7 @@ func explore_path(current_path []string, matrix matrix.Matrix, channel chan []st
 	}
 }
 
+// travel a set path to get the advantage generated
 func traverseGraph(path []string, matrix matrix.Matrix) float64 {
 	start_point := path[0]
 	returns := 1.0
@@ -98,6 +100,13 @@ func traverseGraph(path []string, matrix matrix.Matrix) float64 {
 	return returns
 }
 
+
+/*
+Main algorithm
+Parallelized Depth First Search (truncated)
+Get all the initial possible first next steps - which means all available currencies
+and the in separate go routines explore the path greedily. Then get the best possible path
+*/
 func ParallelDFS(start_node string) ([]string, float64) {
 	var ConvMatrix matrix.Matrix
 	ConvMatrix.PopulateMatrix()
@@ -140,11 +149,4 @@ func ParallelDFS(start_node string) ([]string, float64) {
 
 	}
 	return best_path, best_ret
-}
-
-func main() {
-	start := time.Now()
-	p, r := ParallelDFS("eur")
-	elapsed := time.Since(start)
-	fmt.Println(p, r, elapsed)
 }

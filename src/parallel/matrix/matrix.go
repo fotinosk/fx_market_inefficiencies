@@ -6,12 +6,14 @@ import (
 	"sort"
 )
 
+// Square matrix containing conversion rates
 type Matrix struct {
 	// convention: if I want to exchange A to B, then I will find the row representing A and find the exchange rate for B
 	currency_names []string
 	conversions    [][]float64
 }
 
+// Populates the conversion matrix, by calling external apis
 func (mat *Matrix) PopulateMatrix() {
 	// sort the keys for consistency
 	vertices := api.GenerateConversionGraph()
@@ -57,6 +59,8 @@ func (mat Matrix) GetExchangeRate(from string, to string) (float64, error) {
 	return mat.conversions[ind_from][ind_to], nil
 }
 
+// Get the advantage, going from one currency to another - for consistency
+// comparissons are done in a basy currency
 func (mat Matrix) GetAlpha(base_currency string, currennt_currency string, next_currency string) float64 {
 	// returns current -> next -> base
 	current_to_next, _ := mat.GetExchangeRate(currennt_currency, next_currency)

@@ -86,7 +86,7 @@ func get_currency_rates(currency_key string, ch chan CurrencyRates)  {
 	ch <- res
 }
 
-
+// Generates a graph with conversion rates
 func GenerateConversionGraph() map[string]map[string]float64 {
 	exchanges := make(map[string]map[string]float64)
 
